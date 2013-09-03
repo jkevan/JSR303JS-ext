@@ -1,8 +1,6 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 
-<%@ taglib uri="http://kenai.com/projects/jsr303js/" prefix="jsr303js"%>
-
 <form:form commandName="formBean" method="POST"
 			cssClass="uni-form" servletRelativeAction="/send">
 	<div class="ctrl-holder">

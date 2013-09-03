@@ -67,16 +67,6 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>4.2.0.Final</version>
 		</dependency>
-		
-		<!--
-			You need to install (mvn install) the real jsr303js jar first
-			It can be found at this location : https://kenai.com/projects/jsr303js/pages/Home
-		-->
-		<dependency>
-			<groupId>org.lanark</groupId>
-			<artifactId>jsr303js</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 
 	<build>
