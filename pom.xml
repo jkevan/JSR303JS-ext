@@ -11,73 +11,16 @@
     for client side validation of form beans in Spring 3 MVC. Based on code from the validation module of the defunct
     Spring Modules project, which translated a custom validation syntax ("valang") into JavaScript form validation code.
   </description>
-  <url>http://kenai.com/projects/jsr303js</url>
-  <licenses>
-    <license>
-      <name>Apache 2</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-      <comments>A business-friendly OSS license</comments>
-    </license>
-  </licenses>
-  <scm>
-    <url>http://kenai.com/projects/jsr303js/sources/svn-repository/show</url>
-    <connection>scm:svn:https://svn.kenai.com/svn/jsr303js~svn-repository</connection>
-  </scm>
-  <distributionManagement>
-    <repository>
-      <id>jsr303js.releases.repository</id>
-      <url>dav:https://kenai.com/website/jsr303js/maven/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>jsr303js.snapshots.repository</id>
-      <url>dav:https://kenai.com/website/jsr303js/maven/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
-  <developers>
-    <developer>
-      <name>Sam Douglass</name>
-    </developer>
-  </developers>
-  <properties>
-    <spring.version>3.0.3.RELEASE</spring.version>
-  </properties>
   <dependencies>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-web</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
-      <version>1.0.0.GA</version>
+      <version>1.1.0.Final</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-validator</artifactId>
-      <version>4.0.0.GA</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -104,6 +47,17 @@
       <version>2.0</version>
       <scope>provided</scope>
     </dependency>
+	  <dependency>
+		  <groupId>commons-lang</groupId>
+		  <artifactId>commons-lang</artifactId>
+		  <version>2.3</version>
+	  </dependency>
+	  <dependency>
+		  <groupId>org.hibernate</groupId>
+		  <artifactId>hibernate-validator</artifactId>
+		  <version>4.3.0.Final</version>
+		  <scope>test</scope>
+	  </dependency>
   </dependencies>
   <build>
     <plugins>

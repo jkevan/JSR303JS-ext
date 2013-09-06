@@ -16,11 +16,6 @@
 
 package org.lanark.jsr303js;
 
-import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.web.util.JavaScriptUtils;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
@@ -28,6 +23,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * Translates a collection of JSR-303 validation constraints into a JavaScript
@@ -69,12 +66,10 @@ public class ValidationJavaScriptGenerator {
    *                            its self with the form on creation
    * @param configJson          a JSON object with other configuration such as date formats
    * @param rules               the collection of <code>ValidationMetaData</code> to translate
-   * @param messageSource       the message source accessor that will be used to resolve validation
-   *                            messages
    * @throws java.io.IOException if there is an io exception
    */
   public void generateJavaScript(Writer writer, String name, boolean installSelfWithForm, String configJson,
-                                             List<ValidationMetaData> rules, MessageSourceAccessor messageSource) throws IOException {
+                                             List<ValidationMetaData> rules) throws IOException {
     try {
       setWriter(writer);
       append("new JSR303JSValidator(");
@@ -88,7 +83,7 @@ public class ValidationJavaScriptGenerator {
         append("{}");
       }
       append(',');
-      appendArrayValidators(rules, messageSource);
+      appendArrayValidators(rules);
       append(')');
     }
     finally {
@@ -96,11 +91,11 @@ public class ValidationJavaScriptGenerator {
     }
   }
 
-  protected void setWriter(Writer writer) {
-    Assert.state(this.writer == null,
-        "Attempted to set writer when one already set - is this class being used is multiple threads?");
-    this.writer = writer;
-  }
+	protected void setWriter(Writer writer) {
+		Validate.isTrue(this.writer == null,
+				"Attempted to set writer when one already set - is this class being used is multiple threads?");
+		this.writer = writer;
+	}
 
   protected void clearWriter() {
     writer = null;
@@ -115,7 +110,7 @@ public class ValidationJavaScriptGenerator {
     if (string == null) {
       writer.write("null");
     } else {
-      writer.write(JavaScriptUtils.javaScriptEscape(string));
+      writer.write(StringEscapeUtils.escapeJavaScript(string));
     }
     writer.write('\'');
   }
@@ -124,10 +119,10 @@ public class ValidationJavaScriptGenerator {
     writer.write(c);
   }
 
-  protected void appendArrayValidators(List<ValidationMetaData> metaData, MessageSourceAccessor messageSource) throws IOException {
+  protected void appendArrayValidators(List<ValidationMetaData> metaData) throws IOException {
     append("new Array(");
     for (Iterator<ValidationMetaData> i = metaData.iterator(); i.hasNext();) {
-      appendValidatorRule(i.next(), messageSource);
+      appendValidatorRule(i.next());
       if (i.hasNext()) {
         append(',');
       }
@@ -135,7 +130,7 @@ public class ValidationJavaScriptGenerator {
     append(')');
   }
 
-  protected void appendValidatorRule(ValidationMetaData validationMetaData, MessageSourceAccessor messageSource) throws IOException {
+  protected void appendValidatorRule(ValidationMetaData validationMetaData) throws IOException {
     append("new JSR303JSValidator.Rule(");
     appendJavaScriptValidatorRuleArgs(validationMetaData);
     append(')');
@@ -154,7 +149,7 @@ public class ValidationJavaScriptGenerator {
 
     Annotation annotation = constraint.getConstraint();
     Class annotationType = annotation.annotationType();
-    String shortName = ClassUtils.getShortName(annotationType);
+    String shortName = annotationType.getSimpleName();
 
     appendJsString(shortName);
 

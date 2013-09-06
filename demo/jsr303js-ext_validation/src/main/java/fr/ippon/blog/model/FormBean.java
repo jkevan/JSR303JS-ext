@@ -1,6 +1,8 @@
 package fr.ippon.blog.model;
 
 
+import javax.validation.constraints.NotNull;
+
 /**
  * This class represents the HTML form
  * 
@@ -8,6 +10,7 @@ package fr.ippon.blog.model;
  */
 public class FormBean {
 
+	@NotNull(message="Le prénom ne doit pas être vide")
 	private String firstname;
 	private String lastname;
 	private long age;

@@ -16,12 +16,11 @@
 
 package org.lanark.jsr303js.taglib;
 
+import javax.servlet.jsp.tagext.BodyTagSupport;
+import javax.validation.Validation;
 import org.lanark.jsr303js.ValidationMetaData;
 import org.lanark.jsr303js.ValidationJavaScriptGenerator;
 import org.lanark.jsr303js.ValidationMetaDataParser;
-import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.web.servlet.tags.RequestContextAwareTag;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
@@ -53,27 +52,30 @@ import java.util.*;
  * @author sdouglass
  * @version $Id$
  */
-public class JSR303JSValidateTag extends RequestContextAwareTag implements BodyTag {
+public class JSR303JSValidateTag extends BodyTagSupport implements BodyTag {
 
     private final ValidationMetaDataParser parser = new ValidationMetaDataParser();
     private final ValidationJavaScriptGenerator generator = new ValidationJavaScriptGenerator();
 
-    private String commandName;
+    private String formClassName;
+    private String formId;
+	private Object form;
 
     private BodyContent bodyContent;
 
-    /**
-     * Sets the name of the command which will be validated by the generated JavaScript.
-     * The command will be retrieved from the model so its class can be used to look up
-     * validation annotations.
-     *
-     * @param commandName the name of the command object
-     */
-    public void setCommandName(String commandName) {
-        this.commandName = commandName;
-    }
+	public void setFormClassName(String formClassName) {
+		this.formClassName = formClassName;
+	}
 
-    protected int doStartTagInternal() {
+	public void setFormId(String formId) {
+		this.formId = formId;
+	}
+
+	public void setForm(Object form) {
+		this.form = form;
+	}
+
+	protected int doStartTagInternal() {
         return EVAL_BODY_BUFFERED;
     }
 
@@ -92,51 +94,44 @@ public class JSR303JSValidateTag extends RequestContextAwareTag implements BodyT
     public int doEndTag() throws JspException {
         try {
             List<ValidationMetaData> rules = new ArrayList<ValidationMetaData>();
-            if (commandName != null) {
-                rules.addAll(getValidationMetaDataForCommand());
-            }
+            if (form != null) {
+                rules.addAll(getValidationMetaDataForObject(form));
+            } else if(formClassName != null) {
+				rules.addAll(getValidationMetaDataForClassName(formClassName));
+			} else {
+				throw new JspException("specify the form or the formClassName attributs");
+			}
+
             String bodyString = null;
             if (bodyContent != null) {
               // body can be a JSON object, specifying date formats, or other extra configuration info
-              bodyString = FileCopyUtils.copyToString(bodyContent.getReader());
-              bodyString = bodyString.trim().replaceAll("\\s{2,}"," ");
+              bodyString = bodyContent.getString().trim().replaceAll("\\s{2,}"," ");
             }
 
             JspWriter out = pageContext.getOut();
             out.write("<script type=\"text/javascript\" id=\"");
-            out.write(commandName + "JSR303JSValidator");
+            out.write(formId + "JSR303JSValidator");
             out.write("\">");
-            generator.generateJavaScript(out, commandName, true, bodyString, rules, new MessageSourceAccessor(
-                getRequestContext().getWebApplicationContext(), getRequestContext().getLocale()));
+            generator.generateJavaScript(out, formId, true, bodyString, rules);
             out.write("</script>");
             return EVAL_PAGE;
         }
         catch (IOException e) {
             throw new JspException("Could not write validation rules", e);
-        }
-    }
+        } catch (ClassNotFoundException e) {
+			throw new JspException("Could not find class with name " + formClassName, e);
+		}
+	}
 
-    public List<ValidationMetaData> getValidationMetaDataForCommand() {
+	public List<ValidationMetaData> getValidationMetaDataForClassName(String fullQualifiedName) throws ClassNotFoundException {
+		return parser.parseMetaData(Class.forName(fullQualifiedName), getDefaultValidator());
+	}
 
-      Object commandObject = pageContext.findAttribute(commandName);
+	public List<ValidationMetaData> getValidationMetaDataForObject(Object o) {
+		return parser.parseMetaData(o.getClass(), getDefaultValidator());
+	}
 
-      if (commandObject == null) {
-        throw new RuntimeException("Could not find command object with name '" + commandName + "' in page context");
-      }
-
-      Map<String, Validator> validatorMap = getRequestContext().getWebApplicationContext().getBeansOfType(Validator.class);
-
-      if (validatorMap.size() != 1) {
-        throw new RuntimeException("There must be exactly one Validator implementation bean in the Web application context");
-      }
-
-      Validator validator = validatorMap.values().iterator().next();
-
-      return parser.parseMetaData(commandObject.getClass(), validator);
-    }
-
-    public void doFinally() {
-        super.doFinally();
-        commandName = null;
-    }
+	private Validator getDefaultValidator(){
+		return Validation.buildDefaultValidatorFactory().getValidator();
+	}
 }

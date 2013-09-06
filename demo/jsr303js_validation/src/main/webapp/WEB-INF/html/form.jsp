@@ -34,5 +34,5 @@
 	</div>
 </form:form>
 
-<script type="text/javascript" src="js/jsr303js-codebase.js"></script>
+<jsr303js:codebase />
 <jsr303js:validate commandName="formBean"/>

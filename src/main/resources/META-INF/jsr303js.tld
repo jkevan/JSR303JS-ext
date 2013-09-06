@@ -50,9 +50,22 @@
       object in the model.
     </description>
     <attribute>
-      <name>commandName</name>
+      <name>formClassName</name>
       <required>false</required>
       <rtexprvalue>true</rtexprvalue>
+		<type>java.lang.String</type>
     </attribute>
+	  <attribute>
+		  <name>form</name>
+		  <required>false</required>
+		  <rtexprvalue>true</rtexprvalue>
+		  <type>java.lang.Object</type>
+	  </attribute>
+	  <attribute>
+		  <name>formId</name>
+		  <required>true</required>
+		  <rtexprvalue>true</rtexprvalue>
+		  <type>java.lang.String</type>
+	  </attribute>
   </tag>
 </taglib>

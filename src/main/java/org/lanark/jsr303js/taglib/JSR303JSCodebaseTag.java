@@ -16,10 +16,11 @@
 
 package org.lanark.jsr303js.taglib;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-import org.springframework.web.servlet.tags.RequestContextAwareTag;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.jsp.tagext.TagSupport;
+import org.apache.commons.lang.Validate;
 
 import javax.servlet.ServletException;
 import javax.servlet.jsp.JspException;
@@ -41,7 +42,9 @@ import java.io.Writer;
  * @author sdouglass
  * @version $Id$
  */
-public class JSR303JSCodebaseTag extends RequestContextAwareTag {
+public class JSR303JSCodebaseTag extends TagSupport {
+
+	private static final Logger logger = Logger.getLogger(JSR303JSCodebaseTag.class.getName());
 
   /**
    * Returns a <code>Reader</code> for accessing the JavaScript codebase used by the
@@ -51,8 +54,9 @@ public class JSR303JSCodebaseTag extends RequestContextAwareTag {
    * @throws java.io.IOException
    */
   public static Reader getCodebaseReader() throws IOException {
-    Resource codebaseResource = new ClassPathResource("jsr303js-codebase.js");
-    return new InputStreamReader(codebaseResource.getInputStream());
+	  InputStream codebaseInputSteam = Thread.currentThread().getContextClassLoader()
+			  .getResourceAsStream("jsr303js-codebase.js");
+    return new InputStreamReader(codebaseInputSteam);
   }
 
 //  private final static String DEFAULT_GLOBAL_ERRORS_ID = "global_errors";
@@ -134,8 +138,8 @@ public class JSR303JSCodebaseTag extends RequestContextAwareTag {
    * @throws IOException if there is an io exception
    */
   private void copy(Reader in, Writer out) throws IOException {
-    Assert.notNull(in, "No Reader specified");
-    Assert.notNull(out, "No Writer specified");
+    Validate.notNull(in, "No Reader specified");
+	Validate.notNull(out, "No Writer specified");
     try {
       char[] buffer = new char[1024];
       int bytesRead;
@@ -149,13 +153,8 @@ public class JSR303JSCodebaseTag extends RequestContextAwareTag {
         in.close();
       }
       catch (IOException ex) {
-        logger.warn("Could not close Reader", ex);
+        logger.log(Level.WARNING, "Could not close Reader", ex);
       }
     }
-  }
-
-  public void doFinally() {
-    super.doFinally();
-//    includeScriptTags = false;
   }
 }

@@ -77,7 +77,7 @@ public class TestLoadValidations {
 
     Writer writer = new StringWriter();
     try {
-      generator.generateJavaScript(writer, "field", true, "", rules, null);
+      generator.generateJavaScript(writer, "field", true, "", rules);
 
       System.err.println(writer.toString());
       
