@@ -1,8 +1,5 @@
 package fr.ippon.blog.model;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 /**
  * This class represents the HTML form
@@ -11,12 +8,8 @@ import javax.validation.constraints.NotNull;
  */
 public class FormBean {
 
-	@NotNull (message="Le prénom ne doit pas être vide")
 	private String firstname;
-	@NotNull (message="Le nom ne doit pas être vide")
 	private String lastname;
-	@Min(value=1, message="L'àge minimum autorisé est 1 an")
-	@Max(value=125, message="L'àge maximal autorisé est 125 ans")
 	private long age;
 	
 	public String getFirstname() {

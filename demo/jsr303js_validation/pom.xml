@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.ippon.blog</groupId>
-	<artifactId>jsr303js-ext</artifactId>
+	<artifactId>jsr303js-demo</artifactId>
 	<packaging>war</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>JSR303JS - Extended</name>
+	<name>Demo - JSR303JS validation</name>
 	
 	<dependencies>
 		<dependency>
@@ -91,6 +91,13 @@
 					<charset>UTF-8</charset>
 					<finalName>${project.build.finalName}</finalName>
 					<server>localserver</server>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 		</plugins>
