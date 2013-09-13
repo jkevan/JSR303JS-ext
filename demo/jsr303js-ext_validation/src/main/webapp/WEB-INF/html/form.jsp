@@ -1,7 +1,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 
-<%@ taglib uri="http://kenai.com/projects/jsr303js/" prefix="jsr303js"%>
+<%@taglib prefix="jsr303js" uri="http://ippon.fr/projects/jsr303js/" %>
 
 <form:form commandName="formBean" method="POST"
 			cssClass="uni-form" servletRelativeAction="/send" id="FormBean">
@@ -32,12 +32,13 @@
 	</div>
 </form:form>
 
-<jsr303js:codebase />
-<jsr303js:validate form="${formBean}" formId="FormBean">
-	{
-		customConfTest:"test"
-	}
-</jsr303js:validate>
-<script type="text/javascript">
+<script type="text/javascript" src="js/jsr303js-codebase.js"></script>
+<script type="text/javascript" src="js/jsr303js-ext.js"></script>
+<jsr303js:validator formId="FormBean" form="${formBean}" var="formBeanValidator">
 
+</jsr303js:validator>
+<script type="text/javascript">
+	formBeanValidator.getFirstFieldWithName("firstname").addCondition(function(field){
+		return field.getValue().length == 3;
+	}).bindValidationToEvent("keypress");
 </script>

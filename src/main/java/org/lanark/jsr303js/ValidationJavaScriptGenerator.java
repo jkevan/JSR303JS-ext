@@ -61,19 +61,20 @@ public class ValidationJavaScriptGenerator {
    * code into the provided writer.
    *
    * @param writer              the writer to output the JavaScript code into
-   * @param name                the name of the command that is being validated
+   * @param formId                the name of the command that is being validated
    * @param installSelfWithForm should the generated JavaScript attempt to install
    *                            its self with the form on creation
    * @param configJson          a JSON object with other configuration such as date formats
    * @param rules               the collection of <code>ValidationMetaData</code> to translate
    * @throws java.io.IOException if there is an io exception
    */
-  public void generateJavaScript(Writer writer, String name, boolean installSelfWithForm, String configJson,
-                                             List<ValidationMetaData> rules) throws IOException {
+  public void generateJavaScript(Writer writer, String formId, String varName, boolean installSelfWithForm,
+								 String configJson, List<ValidationMetaData> rules) throws IOException {
     try {
       setWriter(writer);
-      append("new JSR303JSValidator(");
-      appendJsString(name);
+		append(varName);
+      append(" = new JSR303JSValidator(");
+      appendJsString(formId);
       append(',');
       append(Boolean.toString(installSelfWithForm));
       append(',');

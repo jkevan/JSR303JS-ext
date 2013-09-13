@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 public class TestConstraintJavaScriptTranslator {
   private static Validator validator;
 
+	/*
   @BeforeClass
    public static void setUp() {
      ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
