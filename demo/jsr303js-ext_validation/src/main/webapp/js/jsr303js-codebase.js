@@ -132,7 +132,7 @@ JSR303JSValidator.prototype = {
         if (!element) {
             throw 'unable to find FORM element enclosing element with ID \'' + foundElement.id + '\''
         }
-        return new JSR303JSValidator.Form(element)
+        return new JSR303JSValidator.Form(element, this)
     },
     _installSelfWithForm: function() {
         var oldOnload = window.onload
@@ -275,8 +275,9 @@ JSR303JSValidator.Logger = {
  *
  * Based on code from http://prototype.conio.net/
  */
-JSR303JSValidator.Form = function(formElement) {
-    this.formElement = formElement
+JSR303JSValidator.Form = function(formElement, validator) {
+    this.formElement = formElement;
+	this.validator = validator;
 }
 JSR303JSValidator.Form.prototype = {
     getValue: function(fieldName) {
@@ -309,7 +310,7 @@ JSR303JSValidator.Form.prototype = {
         var tagElements = this.formElement.elements
         for (var i = 0; i < tagElements.length; i++) {
           if (tagElements[i].tagName.toLowerCase() != 'fieldset') {
-            fields.push(new JSR303JSValidator.Field(tagElements[i]))
+            fields.push(new JSR303JSValidator.Field(tagElements[i], this.validator))
           }
         }
         return fields
@@ -343,7 +344,8 @@ JSR303JSValidator.Form.prototype = {
  *
  * Based on code from http://prototype.conio.net/
  */
-JSR303JSValidator.Field = function(fieldElement) {
+JSR303JSValidator.Field = function(fieldElement, validator) {
+	this.validator = validator;
     this.id = fieldElement.id
     this.name = fieldElement.name
     this.type = fieldElement.type.toLowerCase()

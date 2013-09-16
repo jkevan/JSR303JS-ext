@@ -2,38 +2,89 @@
 JSR303JSValidator.Utils = {
 	_bindEvent: function (field, type, callback, propagation) {
 		var fn = function(event){
-			callback(field);
+			callback(field, event);
 		};
 		if (field.fieldElement.addEventListener) {
 			field.fieldElement.addEventListener(type, fn, propagation);
 		} else if (field.fieldElement.attachEvent) {
 			field.fieldElement.attachEvent('on' + type, fn);
 		}
+	},
+
+	_validateRules: function (rules) {
+		var ruleViolations = [];
+		for (var i = 0; i < rules.length; i++) {
+			console.log('Validating rule [' + rules[i].validationFunction + '] ' +
+				'for field [' + rules[i].field + ']');
+			if (!rules[i].validate(this)) {
+				console.log('Failed');
+				ruleViolations.push(this._buildRuleViolation(rules[i]));
+			} else {
+				console.log('Passed');
+			}
+		}
+
+		return ruleViolations;
+	},
+
+	_buildErrorLine: function (field, ruleViolation) {
+		if (!ruleViolation.params.message) {
+			return "";
+		}
+
+		var error = document.createElement("span");
+		error.setAttribute("class", this._buildErrorClassName(field, ruleViolation.constraint));
+		error.innerText = ruleViolation.params.message;
+		return error;
+	},
+
+	_buildErrorClassName: function(field, constraint) {
+		return field.name + "_" + constraint + "_error"
+	},
+
+	_buildRuleViolation: function(rule){
+		return {
+			constraint: rule.validationFunction,
+			params: JSON.parse(JSON.stringify(rule.params))
+		};
 	}
 };
 
 /* Field API */
 JSR303JSValidator.Field.prototype.conditions = [];
-JSR303JSValidator.Field.prototype.addCondition = function(condition){
+JSR303JSValidator.Field.prototype.addValidationCondition = function(condition){
 	this.conditions.push(condition);
 	return this;
 };
 
-JSR303JSValidator.Field.prototype.onSuccess = [];
-JSR303JSValidator.Field.prototype.addSuccessCallBack = function(callback){
-	this.onSuccess.push(callback);
+JSR303JSValidator.Field.prototype.preValidationProcess = 0;
+JSR303JSValidator.Field.prototype.addPreValidationProcess = function(fn){
+	this.preValidationProcess = fn;
 	return this;
 };
 
-JSR303JSValidator.Field.prototype.onFailed = [];
-JSR303JSValidator.Field.prototype.addFailedCallBack = function(callback){
-	this.onFailed.push(callback);
+JSR303JSValidator.Field.prototype.postValidationProcessBeforeMessage = 0;
+JSR303JSValidator.Field.prototype.addPostValidationBeforeMessageProcess = function(fn){
+	this.postValidationProcessBeforeMessage = fn;
+	return this;
+};
+
+JSR303JSValidator.Field.prototype.postValidationProcessAfterMessage = 0;
+JSR303JSValidator.Field.prototype.addPostValidationAfterMessageProcess = function(fn){
+	this.postValidationProcessAfterMessage = fn;
+	return this;
+};
+
+JSR303JSValidator.Field.prototype.validationTimeoutDelay = 0;
+JSR303JSValidator.Field.prototype.validationTimeout = 0;
+JSR303JSValidator.Field.prototype.setValidationDelay = function(delay){
+	this.validationTimeoutDelay = delay;
 	return this;
 };
 
 JSR303JSValidator.Field.prototype.bindValidationToEvent = function(type){
 	var instance = this;
-	JSR303JSValidator.Utils._bindEvent(this, type, instance.validate, false);
+	JSR303JSValidator.Utils._bindEvent(this, type, instance.initValidation, false);
 	return this;
 };
 
@@ -41,14 +92,12 @@ JSR303JSValidator.Field.prototype._executeConditions = function(){
 	var instance = this;
 	try{
 		if(this.conditions.length > 0){
-			console.log("Execute condition on validation");
+			console.log("Execute validation conditions");
 			this.conditions.forEach(function(condition){
 				if(!condition(instance)){
 					throw "conditionFailed";
 				}
 			});
-		}else {
-			console.log("No conditions");
 		}
 	}catch (err){
 		if(err == "conditionFailed"){
@@ -56,11 +105,36 @@ JSR303JSValidator.Field.prototype._executeConditions = function(){
 			return false;
 		}
 	}
-	console.log("Conditions succeeded");
 	return true;
 };
 
-JSR303JSValidator.Field.prototype.validate = function(field){
+JSR303JSValidator.Field.prototype._getFieldRules = function () {
+	var instance = this;
+	var rules = [];
+	for (var i = 0; i < instance.validator.rules.length; i++) {
+		if (instance.validator.rules[i].field == instance.name) {
+			var rule = instance.validator.rules[i];
+			rule.form = instance.validator.form;
+			rules.push(rule);
+		}
+	}
+	return rules;
+};
+
+JSR303JSValidator.Field.prototype._doValidation = function () {
+	var instance = this;
+	var rules = this._getFieldRules();
+	var failedRules = [];
+	if (rules.length > 0) {
+		failedRules = JSR303JSValidator.Utils._validateRules(rules);
+	} else {
+		console.log('Unable to find validation rules for field "' + instance.name + '"');
+	}
+
+	return failedRules;
+};
+
+JSR303JSValidator.Field.prototype.validate = function(field, event){
 	console.log("Start validating field:" + field.name);
 
 	// Do conditions
@@ -68,11 +142,84 @@ JSR303JSValidator.Field.prototype.validate = function(field){
 		return;
 	}
 
-	// TODO validate
+	// Pre validation process
+	if(field.preValidationProcess){
+		field.preValidationProcess(event, field);
+	}
 
+	//Do validation
+	var ruleViolations = field._doValidation();
 
+	// Post validation process
+	if(field.postValidationProcessBeforeMessage){
+		var ruleViolationsUpdated = field.postValidationProcessBeforeMessage(event, field, ruleViolations);
+		if(ruleViolationsUpdated){
+			ruleViolations = ruleViolationsUpdated;
+		}
+	}
 
+	// Display error messages
+	field._updateErrorMessages(ruleViolations);
 
+	// Post validation process
+	if(field.postValidationProcessAfterMessage){
+		field.postValidationProcessAfterMessage(event, field, ruleViolations);
+	}
+};
+
+JSR303JSValidator.Field.prototype._updateErrorMessages = function(ruleViolations){
+	this._updateLocalErrorMessages(ruleViolations);
+	this._updateGlobalErrorMessages(ruleViolations);
+};
+
+JSR303JSValidator.Field.prototype._updateGlobalErrorMessages = function(ruleViolations){
+	var instance = this;
+	var errorContainer = document.getElementById(instance.validator.form.formElement.getAttribute("id")
+		+ "_errors");
+	if(errorContainer){
+		var newErrorContainer = errorContainer.cloneNode(true);
+
+		// Clean errors related to this field in global container
+		var fieldRules = instance._getFieldRules();
+		fieldRules.forEach(function(rule){
+			var errorLineToDelete = newErrorContainer.getElementsByClassName(
+				JSR303JSValidator.Utils._buildErrorClassName(instance, rule.validationFunction))
+			if(errorLineToDelete.length > 0){
+				newErrorContainer.removeChild(errorLineToDelete[0]);
+			}
+		});
+
+		// Add errors related to this field
+		ruleViolations.forEach(function(ruleViolation){
+			newErrorContainer.appendChild(JSR303JSValidator.Utils._buildErrorLine(instance, ruleViolation));
+		});
+
+		errorContainer.parentNode.replaceChild(newErrorContainer, errorContainer);
+	}
+};
+
+JSR303JSValidator.Field.prototype._updateLocalErrorMessages = function(ruleViolations){
+	var instance = this;
+	var errorContainer = document.getElementById(instance.name + "_error");
+	if(errorContainer){
+		var newErrorContainer = errorContainer.cloneNode(false);
+		ruleViolations.forEach(function(ruleViolation){
+			newErrorContainer.appendChild(JSR303JSValidator.Utils._buildErrorLine(instance, ruleViolation));
+		});
+
+		errorContainer.parentNode.replaceChild(newErrorContainer, errorContainer);
+	}
+};
+
+JSR303JSValidator.Field.prototype.initValidation = function(field, event){
+	if(field.validationTimeoutDelay && !isNaN(field.validationTimeoutDelay)){
+		clearInterval(field.validationTimeout);
+		field.validationTimeout = setTimeout(function(){
+			field.validate(field, event);
+		}, field.validationTimeoutDelay);
+	}else {
+		field.validate(field, event);
+	}
 };
 
 /* Validator */
