@@ -43,24 +43,13 @@
 </jsr303js:validator>
 <script type="text/javascript">
 	var firstNamefield = formBeanValidator.getFirstFieldWithName("firstname");
-	firstNamefield.bindValidationToEvent("keyup")
+	firstNamefield.bindValidationToEvent("keyup,change")
 			.addPreValidationProcess(function(event, field){
-				console.log("PRE VALIDATING");
-			}).addPostValidationBeforeMessageProcess(function(event, field, ruleViolations){
-				console.log("char: " + String.fromCharCode(event.which));
-				console.log("length: " + field.fieldElement.value.length);
-				console.log("rule violations length: " + ruleViolations.length);
+				console.log("PRE VALIDATING KEYUP");
+			});
 
-				ruleViolations.forEach(function(ruleViolation){
-					if(ruleViolation.constraint == "NotNull"){
-						ruleViolation.params.message += " modfied!";
-					}
-				});
-
-				return ruleViolations;
-			})
-			.addPostValidationAfterMessageProcess(function(event, field, ruleViolations){
-				console.log("POST AFTER MESSAGE")
-			})
-			.setValidationDelay(500);
+	firstNamefield.bindValidationToEvent("focus")
+			.addPreValidationProcess(function(event, field){
+				console.log("PRE VALIDATING FOCUS");
+			});
 </script>
