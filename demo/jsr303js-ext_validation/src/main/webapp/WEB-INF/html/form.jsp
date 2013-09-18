@@ -39,17 +39,36 @@
 <script type="text/javascript" src="js/jsr303js-codebase.js"></script>
 <script type="text/javascript" src="js/jsr303js-ext.js"></script>
 <jsr303js:validator formId="FormBean" form="${formBean}" var="formBeanValidator">
-
+	{
+		errorLocalMessageTemplate: "<span class='{{class}} test'>{{message}}</span>"
+	}
 </jsr303js:validator>
 <script type="text/javascript">
 	var firstNamefield = formBeanValidator.getFirstFieldWithName("firstname");
-	firstNamefield.bindValidationToEvent("keyup,change")
+	var form = formBeanValidator.getForm();
+
+	form.bindValidationToSubmit()
+			.addPreSubmitValidationProcess(function (event) {
+				console.log("PRE VALIDATING THE FORM");
+			}).addPostSubmitValidationProcess(function (event, ruleViolationsByField) {
+				console.log("POST VALIDATING THE FORM");
+				ruleViolationsByField.forEach(function(ruleViolationA){
+					console.log("Field in error: " + ruleViolationA.field + " with "
+							+ ruleViolationA.ruleViolations.length + " errors");
+				});
+
+			});
+	
+	firstNamefield.bindValidationToEvent("keyup")
 			.addPreValidationProcess(function(event, field){
 				console.log("PRE VALIDATING KEYUP");
-			});
-
-	firstNamefield.bindValidationToEvent("focus")
-			.addPreValidationProcess(function(event, field){
-				console.log("PRE VALIDATING FOCUS");
+			})
+			.addPostValidationBeforeMessageProcess(function(event, field, ruleViolations){
+				console.log("POST VALIDATING KEYUP");
+				ruleViolations.forEach(function(ruleViolation){
+					if(ruleViolation.constraint == "NotNull"){
+						ruleViolation.params.message += " ahahaha";
+					}
+				})
 			});
 </script>

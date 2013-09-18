@@ -14,15 +14,20 @@ JSR303JSValidator.Utils = {
 		}
 	},
 
-	_bindEvent: function (field, type, callback, propagation) {
+	_bindEvent: function(element, type, fn, propagation){
+		if (element.addEventListener) {
+			element.addEventListener(type, fn, propagation);
+		} else if (element.attachEvent) {
+			element.attachEvent('on' + type, fn);
+		}
+	},
+
+	_bindFieldToEvent: function (field, type, callback, propagation) {
 		var fn = function(event){
 			callback(event, field);
 		};
-		if (field.fieldElement.addEventListener) {
-			field.fieldElement.addEventListener(type, fn, propagation);
-		} else if (field.fieldElement.attachEvent) {
-			field.fieldElement.attachEvent('on' + type, fn);
-		}
+
+		this._bindEvent(field.fieldElement, type, fn, propagation);
 	},
 
 	_validateRules: function (rules) {
@@ -72,23 +77,12 @@ JSR303JSValidator.Field.prototype.bindValidationToEvent = function(type){
 	var atype = 0;
 	type.trim().split(",").forEach(function(theType){
 		atype = theType;
-		instance._addActionsToEvent(theType, actions);
-		JSR303JSValidator.Utils._bindEvent(instance, theType, instance._initFieldValidation, false);
+		instance._addActionsToEventType(theType, actions);
+		JSR303JSValidator.Utils._bindFieldToEvent(instance, theType, instance._initFieldValidation, false);
 	});
 	if(atype){
 		return instance._getActionsForEventType(atype);
 	}
-};
-
-JSR303JSValidator.Field.prototype.actions = [];
-JSR303JSValidator.Field.prototype._addActionsToEvent = function(type , actions){
-	this.actions[type] = actions;
-};
-JSR303JSValidator.Field.prototype._getActionsForEvent = function(event){
-	return this._getActionsForEventType(event.type)
-};
-JSR303JSValidator.Field.prototype._getActionsForEventType = function(eventType){
-	return this.actions[eventType];
 };
 
 JSR303JSValidator.Field.prototype._executeConditions = function(){
@@ -124,6 +118,10 @@ JSR303JSValidator.Field.prototype._getFieldRules = function () {
 	return rules;
 };
 
+JSR303JSValidator.Field.prototype._hasValidationRules = function () {
+	return this._getFieldRules().length > 0;
+};
+
 JSR303JSValidator.Field.prototype._doFieldRulesValidation = function () {
 	var instance = this;
 	var rules = this._getFieldRules();
@@ -151,38 +149,44 @@ JSR303JSValidator.Field.prototype._initFieldValidation = function(event, field){
 	}
 };
 
+JSR303JSValidator.Field.prototype._doAction = function(event, field, ruleViolations, actionFnName) {
+	var globalAction = field._getActionsForEventType("all");
+
+	// Pre validation process
+	if(globalAction && globalAction[actionFnName]){
+		globalAction[actionFnName](event, field, ruleViolations);
+	}
+	if(field._getActionsForEvent(event)[actionFnName]){
+		return field._getActionsForEvent(event)[actionFnName](event, field, ruleViolations);
+	}
+};
+
 JSR303JSValidator.Field.prototype._doFieldValidation = function(event, field){
 	console.log("Start validating field:" + field.name);
 
 	// Do conditions
-	if(!field._executeConditions()){
-		return;
+	if(!field._hasValidationRules() && !field._executeConditions()){
+		return true;
 	}
 
-	// Pre validation process
-	if(field._getActionsForEvent(event).preValidationProcess){
-		field._getActionsForEvent(event).preValidationProcess(event, field);
-	}
+	field._doAction(event, field, null, "preValidationProcess");
 
 	//Do validation
 	var ruleViolations = field._doFieldRulesValidation();
 
 	// Post validation process
-	if(field._getActionsForEvent(event).postValidationProcessBeforeMessage){
-		var ruleViolationsUpdated = field._getActionsForEvent(event)
-			.postValidationProcessBeforeMessage(event, field, ruleViolations);
-		if(ruleViolationsUpdated){
-			ruleViolations = ruleViolationsUpdated;
-		}
+	var updatedRuleViolations = field._doAction(event, field, ruleViolations, "postValidationProcessBeforeMessage");
+	if(updatedRuleViolations){
+		ruleViolations = updatedRuleViolations;
 	}
 
 	// Display error messages
 	field._updateErrorMessages(ruleViolations);
 
 	// Post validation process
-	if(field._getActionsForEvent(event).postValidationProcessAfterMessage){
-		field._getActionsForEvent(event).postValidationProcessAfterMessage(event, field, ruleViolations);
-	}
+	field._doAction(event, field, ruleViolations, "postValidationProcessAfterMessage");
+
+	return ruleViolations;
 };
 
 JSR303JSValidator.Field.prototype._updateErrorMessages = function(ruleViolations){
@@ -229,7 +233,17 @@ JSR303JSValidator.Field.prototype._updateLocalErrorMessages = function(ruleViola
 	}
 };
 
-/* Actions API on field */
+JSR303JSValidator.Field.prototype.actions = [];
+JSR303JSValidator.Field.prototype._addActionsToEventType = function(type , actions){
+	this.actions[type] = actions;
+};
+JSR303JSValidator.Field.prototype._getActionsForEvent = function(event){
+	return this._getActionsForEventType(event.type)
+};
+JSR303JSValidator.Field.prototype._getActionsForEventType = function(eventType){
+	return this.actions[eventType];
+};
+
 JSR303JSValidator.Field.Actions = function(){
 };
 
@@ -264,7 +278,105 @@ JSR303JSValidator.Field.Actions.prototype.setValidationDelay = function(delay){
 	return this;
 };
 
+/* Form API */
+JSR303JSValidator.Form.prototype.bindValidationToSubmit = function(){
+	var instance = this;
+	var fields = instance.getFields();
+
+	fields.forEach(function(field){
+		field.bindValidationToEvent("submit");
+	});
+
+	JSR303JSValidator.Utils._bindEvent(instance.formElement, "submit", function(event){
+
+		// Do preValidation
+		instance._doAction(event, null, "preSubmitValidationProcess");
+
+		var validate = true;
+		var ruleViolationsByField = [];
+		instance.getFields().forEach(function(field){
+			var ruleViolation = field._doFieldValidation(event, field);
+			if(ruleViolation.length > 0){
+				validate = false;
+				ruleViolationsByField.push({
+					field: field.name,
+					ruleViolations: ruleViolation
+				})
+			}
+		});
+
+		// Do postValidation
+		instance._doAction(event, ruleViolationsByField, "postSubmitValidationProcess");
+
+		// if errors don't send the form
+		if(ruleViolationsByField.length > 0){
+			event.preventDefault();
+		}
+
+	}, false);
+
+	return instance.actions;
+};
+
+JSR303JSValidator.Form.prototype._doAction = function(event, ruleViolations, actionFnName) {
+	if(this.actions[actionFnName]){
+		this.actions[actionFnName](event, ruleViolations);
+	}
+};
+
+JSR303JSValidator.Form.Actions = function(){
+};
+
+JSR303JSValidator.Form.Actions.prototype.preSubmitValidationProcess = 0;
+JSR303JSValidator.Form.Actions.prototype.addPreSubmitValidationProcess = function(fn){
+	this.preSubmitValidationProcess = fn;
+	return this;
+};
+
+JSR303JSValidator.Form.Actions.prototype.postSubmitValidationProcess = 0;
+JSR303JSValidator.Form.Actions.prototype.addPostSubmitValidationProcess = function(fn){
+	this.postSubmitValidationProcess = fn;
+	return this;
+};
+JSR303JSValidator.Form.prototype.actions = new JSR303JSValidator.Form.Actions();
+
+JSR303JSValidator.Form.prototype._addGlobalProcess = function (fn, actionsFnName){
+	var instance = this;
+	var fields = instance.getFields();
+
+	var newGlobalActions = new JSR303JSValidator.Field.Actions();
+	newGlobalActions[actionsFnName](fn);
+
+	fields.forEach(function(field){
+		var globalActions = field._getActionsForEventType("all");
+		if(globalActions) {
+			globalActions[actionsFnName](fn);
+		}else {
+			field._addActionsToEventType("all", newGlobalActions);
+		}
+	});
+};
+
+JSR303JSValidator.Form.prototype.addFieldsPreValidationProcess = function(fn){
+	this._addGlobalProcess(fn, "addPreValidationProcess");
+	return this;
+};
+
+JSR303JSValidator.Form.prototype.addFieldsPostValidationBeforeMessageProcess = function(fn){
+	this._addGlobalProcess(fn, "addPostValidationBeforeMessageProcess");
+	return this;
+};
+
+JSR303JSValidator.Form.prototype.addFieldsPostValidationAfterMessageProcess = function(fn){
+	this._addGlobalProcess(fn, "addPostValidationAfterMessageProcess");
+	return this;
+};
+
 /* Validator */
+JSR303JSValidator.prototype.getForm = function(){
+	return this.form;
+};
+
 JSR303JSValidator.prototype.getFirstFieldWithName = function(fieldName){
 	var fields = this.getFieldsWithName(fieldName);
 	if(fields.length > 0){
