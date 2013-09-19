@@ -42,7 +42,7 @@ public class ViewController {
 		return VIEW_RESULT;
 	}
 
-	@RequestMapping(value="/validate", method = RequestMethod.GET)
+	@RequestMapping(value="/validate", method = RequestMethod.POST)
 	public @ResponseBody List<RuleViolation> validateField(@RequestParam String objectName,
 													 @RequestParam String fieldName,
 													 @RequestParam(required = false) String fieldValue,
@@ -54,5 +54,13 @@ public class ViewController {
 		BeanUtils.setProperty(o, fieldName, fieldValue);
 
 		return FieldValidator.validate(o, fieldName, constraints);
+	}
+
+	@RequestMapping(value="/validate2", method = RequestMethod.POST)
+	public @ResponseBody List<RuleViolation> validateField(@ModelAttribute FormBean formBean,
+														   @RequestParam String fieldName,
+														   @RequestParam String[] constraints){
+
+		return FieldValidator.validate(formBean, fieldName, constraints);
 	}
 }

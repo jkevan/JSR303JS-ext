@@ -46,19 +46,19 @@ ajax.post = function(url, data, callback, sync) {
 JSR303JSValidator.defaultConf = {
 	errorLocalMessageTemplate: "<span class='{{class}}'>{{message}}</span>",
 	errorGlobalMessageTemplate: "<span class='{{class}}'>{{message}}</span>",
-	ajaxValidateFieldURL: 0
+	ajaxValidateFieldURL: 0,
+	ajaxValidateFieldParams: function(objectName, fieldName, fieldvalue, constaints){
+		return {
+			objectName: objectName,
+			fieldName: fieldName,
+			fieldValue: fieldvalue,
+			constraints: constaints
+		}
+	}
 };
 
 /* Utils */
 JSR303JSValidator.Utils = {
-	_getProp: function (propName, options){
-		if(options && options[propName]){
-			return options[propName];
-		}else {
-			return JSR303JSValidator.defaultConf[propName];
-		}
-	},
-
 	_bindEvent: function(element, type, fn, propagation){
 		if (element.addEventListener) {
 			element.addEventListener(type, fn, propagation);
@@ -99,8 +99,8 @@ JSR303JSValidator.Utils = {
 		if (!ruleViolation.params.message) {
 			return "";
 		}
-		var error = global ? JSR303JSValidator.Utils._getProp("errorGlobalMessageTemplate", field.validator.config)
-			: JSR303JSValidator.Utils._getProp("errorLocalMessageTemplate", field.validator.config);
+		var error = global ? field.validator._getProp("errorGlobalMessageTemplate")
+			: field.validator._getProp("errorLocalMessageTemplate");
 		error = error.replace("{{class}}", this._buildErrorClassName(field, ruleViolation.constraint));
 		error = error.replace("{{message}}", ruleViolation.params.message);
 
@@ -200,7 +200,7 @@ JSR303JSValidator.Field.prototype._validateRules = function (rules, validationCa
 	});
 
 	// Validate ajax rules
-	var ajaxServiceURL = JSR303JSValidator.Utils._getProp("ajaxValidateFieldURL", instance.validator.config);
+	var ajaxServiceURL = instance.validator._getProp("ajaxValidateFieldURL");
 	var ajaxRules = JSR303JSValidator.Utils._getAjaxableInRules(rules);
 	if(ajaxServiceURL && ajaxRules.length > 0){
 		var constraints = [];
@@ -208,17 +208,15 @@ JSR303JSValidator.Field.prototype._validateRules = function (rules, validationCa
 			constraints.push(ajaxRule.validationFunction);
 		});
 
-		//TODO generic params
-		var data = {
-			objectName: instance.validator.objectName,
-			fieldName: ajaxRules[0].field,
-			fieldValue: instance.getValue(),
-			constraints: constraints.join(",")
-		};
+		var data = instance.validator._getProp("ajaxValidateFieldParams")(
+			instance.validator.objectName
+			, ajaxRules[0].field
+			, instance.getValue()
+			, constraints.join(","));
 
 		console.log('AJAX Validating rules ' +
 			'for field [' + ajaxRules[0].field + ']');
-		ajax.get(ajaxServiceURL, data, function(data){
+		ajax.post(ajaxServiceURL, data, function(data){
 			if(data){
 				ruleViolations = ruleViolations.concat(JSON.parse(data));
 				if(ruleViolations.length > 0){
@@ -420,11 +418,7 @@ JSR303JSValidator.Form.prototype.bindValidationToSubmit = function(){
 					event.preventDefault();
 				}
 			});
-
 		});
-
-
-
 	}, false);
 
 	return instance.actions;
@@ -499,4 +493,12 @@ JSR303JSValidator.prototype.getFieldsWithName = function(fieldName){
 
 JSR303JSValidator.prototype.getFields = function(){
 	return this.form.getFields();
+};
+
+JSR303JSValidator.prototype._getProp = function (propName){
+	if(this.config && this.config[propName]){
+		return this.config[propName];
+	}else {
+		return JSR303JSValidator.defaultConf[propName];
+	}
 };

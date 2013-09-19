@@ -4,6 +4,7 @@
 <%@taglib prefix="jsr303js" uri="http://ippon.fr/projects/jsr303js/" %>
 
 <spring:url value="/validate" javaScriptEscape="true" var="validate_url"/>
+<spring:url value="/validate2" javaScriptEscape="true" var="validate_url2"/>
 
 <form:form commandName="formBean" method="POST"
 		   cssClass="uni-form" servletRelativeAction="/send" id="FormBean">
@@ -44,7 +45,15 @@
 <jsr303js:validator formId="FormBean" form="${formBean}" var="formBeanValidator">
 	{
 		errorLocalMessageTemplate: "<span class='{{class}} test'>{{message}}</span>",
-		ajaxValidateFieldURL:"${validate_url}"
+		ajaxValidateFieldURL:"${validate_url2}",
+		ajaxValidateFieldParams: function(objectName, fieldName, fieldvalue, constaints){
+			var data = {
+				fieldName: fieldName,
+				constraints: constaints
+			};
+			data[fieldName] = fieldvalue;
+			return data;
+		}
 	}
 </jsr303js:validator>
 <script type="text/javascript">
