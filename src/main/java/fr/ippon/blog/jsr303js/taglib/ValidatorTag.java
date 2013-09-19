@@ -1,5 +1,7 @@
 package fr.ippon.blog.jsr303js.taglib;
 
+import fr.ippon.blog.jsr303js.util.ValidationUtils;
+import fr.ippon.blog.jsr303js.validation.RulesGenerator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +11,8 @@ import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 import javax.validation.Validation;
 import javax.validation.Validator;
-import org.lanark.jsr303js.ValidationJavaScriptGenerator;
-import org.lanark.jsr303js.ValidationMetaData;
-import org.lanark.jsr303js.ValidationMetaDataParser;
+import fr.ippon.blog.jsr303js.util.ValidationJavaScriptGenerator;
+import fr.ippon.blog.jsr303js.validation.model.Rule;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,7 +23,7 @@ import org.lanark.jsr303js.ValidationMetaDataParser;
  */
 public class ValidatorTag extends BodyTagSupport{
 
-	private final ValidationMetaDataParser parser = new ValidationMetaDataParser();
+	private final RulesGenerator parser = new RulesGenerator();
 	private final ValidationJavaScriptGenerator generator = new ValidationJavaScriptGenerator();
 
 	// Allow to identify the data model
@@ -71,11 +72,11 @@ public class ValidatorTag extends BodyTagSupport{
 
 	public int doEndTag() throws JspException {
 		try {
-			List<ValidationMetaData> rules = new ArrayList<ValidationMetaData>();
+			List<Rule> rules = new ArrayList<Rule>();
 			if (form != null) {
-				rules.addAll(getValidationMetaDataForObject(form));
+				rules.addAll(getRulesForObject(form));
 			} else if(formClassName != null) {
-				rules.addAll(getValidationMetaDataForClassName(formClassName));
+				rules.addAll(getRulesForClassName(formClassName));
 			} else {
 				throw new JspException("specify the form or the formClassName attributs");
 			}
@@ -90,7 +91,7 @@ public class ValidatorTag extends BodyTagSupport{
 			out.write("<script type=\"text/javascript\" id=\"");
 			out.write(formId + "JSR303JSValidator");
 			out.write("\">");
-			generator.generateJavaScript(out, formId, var, true, bodyString, rules);
+			generator.generateJavaScript(out, formId, var, getClassNameForForm(), bodyString, rules);
 			out.write("</script>");
 			return EVAL_PAGE;
 		}
@@ -98,18 +99,30 @@ public class ValidatorTag extends BodyTagSupport{
 			throw new JspException("Could not write validation rules", e);
 		} catch (ClassNotFoundException e) {
 			throw new JspException("Could not find class with name " + formClassName, e);
+		} catch (NoSuchFieldException e) {
+			throw new JspException("Could not find field", e);
 		}
 	}
 
-	public List<ValidationMetaData> getValidationMetaDataForClassName(String fullQualifiedName) throws ClassNotFoundException {
-		return parser.parseMetaData(Class.forName(fullQualifiedName), getDefaultValidator());
+	public String getClassNameForForm(){
+		if(formClassName != null)
+			return formClassName;
+		else if(form != null)
+			return form.getClass().getName();
+		else
+			return "";
 	}
 
-	public List<ValidationMetaData> getValidationMetaDataForObject(Object o) {
-		return parser.parseMetaData(o.getClass(), getDefaultValidator());
+	public List<Rule> getRulesForClassName(String fullQualifiedName) throws ClassNotFoundException, NoSuchFieldException {
+		return getRulesForClass(Class.forName(fullQualifiedName));
 	}
 
-	private Validator getDefaultValidator(){
-		return Validation.buildDefaultValidatorFactory().getValidator();
+	public List<Rule> getRulesForObject(Object o) throws NoSuchFieldException {
+		return getRulesForClass(o.getClass());
 	}
+
+	public List<Rule> getRulesForClass(Class<?> clazz) throws NoSuchFieldException {
+		return parser.parseMetaData(clazz, ValidationUtils.getDefaultValidator());
+	}
+
 }

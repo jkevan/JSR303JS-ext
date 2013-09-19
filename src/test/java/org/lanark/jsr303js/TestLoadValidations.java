@@ -69,10 +69,10 @@ public class TestLoadValidations {
   public void testTranslate() {
     ValidationTestBean testModelBean = new ValidationTestBean();
 
-    ValidationMetaDataParser parser = new ValidationMetaDataParser();
+    RulesGenerator parser = new RulesGenerator();
     ValidationJavaScriptGenerator generator = new ValidationJavaScriptGenerator();
 
-    List<ValidationMetaData> rules = parser.parseMetaData(testModelBean.getClass(), validator);
+    List<Rule> rules = parser.parseMetaData(testModelBean.getClass(), validator);
 
     assertTrue(!rules.isEmpty());
 

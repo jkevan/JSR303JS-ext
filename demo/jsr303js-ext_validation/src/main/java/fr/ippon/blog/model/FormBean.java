@@ -1,7 +1,8 @@
 package fr.ippon.blog.model;
 
 
-import javax.validation.constraints.NotNull;
+import fr.ippon.blog.jsr303js.validation.ajax.Ajaxable;
+import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * This class represents the HTML form
@@ -10,8 +11,10 @@ import javax.validation.constraints.NotNull;
  */
 public class FormBean {
 
-	@NotNull(message="Le prénom ne doit pas être vide")
+	@NotEmpty(message="Le prénom ne doit pas être vide")
 	private String firstname;
+	@NotEmpty(message = "Le nom ne doit pas être vide")
+	@Ajaxable
 	private String lastname;
 	private long age;
 	

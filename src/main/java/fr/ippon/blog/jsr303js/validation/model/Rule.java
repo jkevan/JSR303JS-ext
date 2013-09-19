@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.lanark.jsr303js;
+package fr.ippon.blog.jsr303js.validation.model;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
@@ -30,7 +30,7 @@ import java.util.Map;
  * @author sdouglass
  * @version $Id$
  */
-public class ValidationMetaData {
+public class Rule {
 
   private String field;
 
@@ -38,15 +38,7 @@ public class ValidationMetaData {
 
   private Map<String, Object> attributes;
 
-/*
-  private String errorKey;
-
-  private List<String> errorArgs;
-
-  private String errorMessage;
-*/
-
-  public ValidationMetaData(String field, Annotation constraint, Map<String, Object> attributes) {
+  public Rule(String field, Annotation constraint, Map<String, Object> attributes) {
     this.field = field;
     this.constraint = constraint;
     this.attributes = attributes;
@@ -63,18 +55,4 @@ public class ValidationMetaData {
   public Map<String, Object> getAttributes() {
     return attributes;
   }
-
-/*
-  public String getErrorKey() {
-    return errorKey;
-  }
-
-  public List<String> getErrorArgs() {
-    return errorArgs;
-  }
-
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-*/
 }

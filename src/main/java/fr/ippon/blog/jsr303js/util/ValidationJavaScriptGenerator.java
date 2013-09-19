@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.lanark.jsr303js;
+package fr.ippon.blog.jsr303js.util;
 
+import fr.ippon.blog.jsr303js.validation.model.Rule;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
@@ -62,29 +63,27 @@ public class ValidationJavaScriptGenerator {
    *
    * @param writer              the writer to output the JavaScript code into
    * @param formId                the name of the command that is being validated
-   * @param installSelfWithForm should the generated JavaScript attempt to install
-   *                            its self with the form on creation
    * @param configJson          a JSON object with other configuration such as date formats
-   * @param rules               the collection of <code>ValidationMetaData</code> to translate
+   * @param rules               the collection of <code>Rule</code> to translate
    * @throws java.io.IOException if there is an io exception
    */
-  public void generateJavaScript(Writer writer, String formId, String varName, boolean installSelfWithForm,
-								 String configJson, List<ValidationMetaData> rules) throws IOException {
+  public void generateJavaScript(Writer writer, String formId, String varName, String formObjectName,
+								 String configJson, List<Rule> rules) throws IOException {
     try {
       setWriter(writer);
 		append(varName);
       append(" = new JSR303JSValidator(");
       appendJsString(formId);
       append(',');
-      append(Boolean.toString(installSelfWithForm));
+		appendJsString(formObjectName);
+		append(',');
+		appendArrayValidators(rules);
       append(',');
-      if (configJson != null && !configJson.trim().isEmpty()) {
-        append(configJson);
-      } else {
-        append("{}");
-      }
-      append(',');
-      appendArrayValidators(rules);
+		if (configJson != null && !configJson.trim().isEmpty()) {
+			append(configJson);
+		} else {
+			append("{}");
+		}
       append(')');
     }
     finally {
@@ -120,9 +119,9 @@ public class ValidationJavaScriptGenerator {
     writer.write(c);
   }
 
-  protected void appendArrayValidators(List<ValidationMetaData> metaData) throws IOException {
+  protected void appendArrayValidators(List<Rule> metaData) throws IOException {
     append("new Array(");
-    for (Iterator<ValidationMetaData> i = metaData.iterator(); i.hasNext();) {
+    for (Iterator<Rule> i = metaData.iterator(); i.hasNext();) {
       appendValidatorRule(i.next());
       if (i.hasNext()) {
         append(',');
@@ -131,9 +130,9 @@ public class ValidationJavaScriptGenerator {
     append(')');
   }
 
-  protected void appendValidatorRule(ValidationMetaData validationMetaData) throws IOException {
+  protected void appendValidatorRule(Rule rule) throws IOException {
     append("new JSR303JSValidator.Rule(");
-    appendJavaScriptValidatorRuleArgs(validationMetaData);
+    appendJavaScriptValidatorRuleArgs(rule);
     append(')');
   }
 
@@ -143,7 +142,7 @@ public class ValidationJavaScriptGenerator {
    */
   private static final List<String> IGNORED_ATTRIBUTES = Arrays.asList("payload", "groups");
 
-  protected void appendJavaScriptValidatorRuleArgs(ValidationMetaData constraint) throws IOException {
+  protected void appendJavaScriptValidatorRuleArgs(Rule constraint) throws IOException {
     appendJsString(constraint.getField());
 
     append(',');

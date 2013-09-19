@@ -30,9 +30,9 @@ public class TestConstraintJavaScriptTranslator {
   public void testParseMetaData() {
     ValidationTestBean testModelBean = new ValidationTestBean();
 
-    ValidationMetaDataParser translator = new ValidationMetaDataParser();
+    RulesGenerator translator = new RulesGenerator();
 
-    List<ValidationMetaData> rules = translator.parseMetaData(testModelBean.getClass(), validator);
+    List<Rule> rules = translator.parseMetaData(testModelBean.getClass(), validator);
 
     assertTrue(!rules.isEmpty());
 
@@ -43,13 +43,13 @@ public class TestConstraintJavaScriptTranslator {
   public void testTranslate() {
     TestModelBean testModelBean = new TestModelBean();
 
-    ValidationMetaDataParser translator = new ValidationMetaDataParser();
+    RulesGenerator translator = new RulesGenerator();
 
-    List<ValidationMetaData> rules = translator.parseMetaData(testModelBean.getClass(), validator);
+    List<Rule> rules = translator.parseMetaData(testModelBean.getClass(), validator);
 
     assertTrue(!rules.isEmpty());
 
-    for (ValidationMetaData validationMetaData : rules) {
+    for (Rule validationMetaData : rules) {
       String text = translator.toJavaScript(validationMetaData);
       System.err.println(text);
     }

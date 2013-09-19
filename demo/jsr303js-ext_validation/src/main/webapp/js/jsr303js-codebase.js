@@ -11,12 +11,12 @@ if (!Array.prototype.push) {
 if (!Function.prototype.apply) {
 	// Based on code from http://prototype.conio.net/
 	Function.prototype.apply = function(object, parameters) {
-		var parameterStrings = new Array()
+		var parameterStrings = []
 		if (!object) {
 			object = window
 		}
 		if (!parameters) {
-			parameters = new Array()
+			parameters = []
 		}
 		for (var i = 0; i < parameters.length; i++) {
 			parameterStrings[i] = 'parameters[' + i + ']'
@@ -31,8 +31,9 @@ if (!Function.prototype.apply) {
 /*
  * Core validation object.
  */
-var JSR303JSValidator = function(name, installSelfWithForm, config, rules) {
+var JSR303JSValidator = function(name, formObjectName, rules, config) {
 	this.name = name;
+	this.objectName = formObjectName;
 	this.config = config;
 	this.rules = rules;
 	this.form = this._findForm(name);
@@ -40,21 +41,21 @@ var JSR303JSValidator = function(name, installSelfWithForm, config, rules) {
 
 JSR303JSValidator.prototype = {
 	_findForm: function(name) {
-		var element = document.getElementById(name)
+		var element = document.getElementById(name);
 		if (!element || element.tagName.toLowerCase() != 'form') {
-			element = document.getElementById(name + 'JSR303JSValidator')
+			element = document.getElementById(name + 'JSR303JSValidator');
 			if (!element || element.tagName.toLowerCase() != 'script') {
-				throw 'unable to find form with ID \'' + name + '\' or script element with ID \'' + name + 'JSR303JSValidator\''
+				throw 'unable to find form with ID \'' + name + '\' or script element with ID \'' + name + 'JSR303JSValidator\'';
 			}
 		}
-		var foundElement = element
+		var foundElement = element;
 		while (element && element.tagName.toLowerCase() != 'form') {
-			element = element.parentNode
+			element = element.parentNode;
 		}
 		if (!element) {
-			throw 'unable to find FORM element enclosing element with ID \'' + foundElement.id + '\''
+			throw 'unable to find FORM element enclosing element with ID \'' + foundElement.id + '\'';
 		}
-		return new JSR303JSValidator.Form(element, this)
+		return new JSR303JSValidator.Form(element, this);
 	}
 };
 
@@ -66,42 +67,46 @@ JSR303JSValidator.prototype = {
 JSR303JSValidator.Form = function(formElement, validator) {
 	this.formElement = formElement;
 	this.validator = validator;
+	this.fields = this._findFields();
 };
 JSR303JSValidator.Form.prototype = {
 	getValue: function(fieldName) {
-		var fields = this.getFieldsWithName(fieldName)
-		var value = new Array()
+		var fields = this.getFieldsWithName(fieldName);
+		var value = [];
 		for (var i = 0; i < fields.length; i++) {
 			if (fields[i].getValue()) {
-				value.push(fields[i].getValue())
+				value.push(fields[i].getValue());
 			}
 		}
 		if (value.length == 1) {
-			return value[0]
+			return value[0];
 		} else if (value.length > 1) {
-			return value
+			return value;
 		}
 	},
 	getFieldsWithName: function(fieldName) {
-		var matchingFields = new Array()
-		var fields = this.getFields()
+		var matchingFields = [];
+		var fields = this.getFields();
 		for (var i = 0; i < fields.length; i++) {
-			var field = fields[i]
+			var field = fields[i];
 			if (field.name == fieldName) {
-				matchingFields.push(field)
+				matchingFields.push(field);
 			}
 		}
-		return matchingFields
+		return matchingFields;
 	},
 	getFields: function() {
-		var fields = new Array()
-		var tagElements = this.formElement.elements
+		return this.fields;
+	},
+	_findFields: function() {
+		var fields = [];
+		var tagElements = this.formElement.elements;
 		for (var i = 0; i < tagElements.length; i++) {
 			if (tagElements[i].tagName.toLowerCase() != 'fieldset') {
-				fields.push(new JSR303JSValidator.Field(tagElements[i], this.validator))
+				fields.push(new JSR303JSValidator.Field(tagElements[i], this.validator));
 			}
 		}
-		return fields
+		return fields;
 	}
 };
 
@@ -117,6 +122,8 @@ JSR303JSValidator.Field = function(fieldElement, validator) {
 	this.type = fieldElement.type.toLowerCase();
 	this.tagName = fieldElement.tagName.toLowerCase();
 	this.fieldElement = fieldElement;
+	this.actions = [];
+
 	if (JSR303JSValidator.Field.ValueGetters[this.tagName]) {
 		this.getValue = JSR303JSValidator.Field.ValueGetters[this.tagName];
 	} else if (this.tagName == 'input') {
@@ -156,7 +163,7 @@ JSR303JSValidator.Field.ValueGetters = {
 				value = this.fieldElement.options[index].value
 			}
 		} else {
-			value = new Array()
+			value = []
 			for (var i = 0; i < element.length; i++) {
 				var option = this.fieldElement.options[i]
 				if (option.selected) {
@@ -173,9 +180,9 @@ JSR303JSValidator.Field.ValueGetters = {
  * to evaluate that constraint.
  */
 JSR303JSValidator.Rule = function(field, validationFunction, params) {
-	this.field = field
-	this.params = params
-	this.validationFunction = validationFunction
+	this.field = field;
+	this.params = params;
+	this.validationFunction = validationFunction;
 }
 JSR303JSValidator.Rule.prototype = {
 	validate: function(validator) {
