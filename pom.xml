@@ -2,15 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>fr.ippon.blog</groupId>
-  <artifactId>jsr303js-ext</artifactId>
+  <artifactId>jsv-JSR303-plugin</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>JSR303JS - Extended</name>
-  <description>
-    Translates JSR-303 and Hibernate Validator validation constraint annotations into JavaScript form validation code,
-    for client side validation of form beans in Spring 3 MVC. Based on code from the validation module of the defunct
-    Spring Modules project, which translated a custom validation syntax ("valang") into JavaScript form validation code.
-  </description>
+  <name>JSV - JavaScript Validator API</name>
   <dependencies>
     <dependency>
       <groupId>javax.validation</groupId>

@@ -1,7 +1,7 @@
-package fr.ippon.blog.jsr303js.taglib;
+package fr.ippon.blog.jsv.taglib;
 
-import fr.ippon.blog.jsr303js.util.ValidationUtils;
-import fr.ippon.blog.jsr303js.validation.RulesGenerator;
+import fr.ippon.blog.jsv.util.ValidationUtils;
+import fr.ippon.blog.jsv.validation.RulesGenerator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,10 +9,8 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import fr.ippon.blog.jsr303js.util.ValidationJavaScriptGenerator;
-import fr.ippon.blog.jsr303js.validation.model.Rule;
+import fr.ippon.blog.jsv.util.ValidationJavaScriptGenerator;
+import fr.ippon.blog.jsv.validation.model.Rule;
 
 /**
  * Created with IntelliJ IDEA.
@@ -89,7 +87,7 @@ public class ValidatorTag extends BodyTagSupport{
 
 			JspWriter out = pageContext.getOut();
 			out.write("<script type=\"text/javascript\" id=\"");
-			out.write(formId + "JSR303JSValidator");
+			out.write(formId + "JSValidator");
 			out.write("\">");
 			generator.generateJavaScript(out, formId, var, getClassNameForForm(), bodyString, rules);
 			out.write("</script>");

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.ippon.blog.jsr303js.validation.model;
+package fr.ippon.blog.jsv.validation.model;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;

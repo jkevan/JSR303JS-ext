@@ -1,7 +1,7 @@
 package fr.ippon.blog.model;
 
 
-import fr.ippon.blog.jsr303js.validation.ajax.Ajaxable;
+import fr.ippon.blog.jsv.validation.ajax.Ajaxable;
 import fr.ippon.blog.validation.constraint.PromoCode;
 import java.util.HashMap;
 import javax.validation.constraints.Min;

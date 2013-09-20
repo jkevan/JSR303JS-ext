@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package fr.ippon.blog.jsr303js.util;
+package fr.ippon.blog.jsv.util;
 
-import fr.ippon.blog.jsr303js.validation.model.Rule;
+import fr.ippon.blog.jsv.validation.model.Rule;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
@@ -27,28 +27,6 @@ import java.util.Map;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 
-/**
- * Translates a collection of JSR-303 validation constraints into a JavaScript
- * object that is capable of validating an HTML form and writes this to a provided
- * <code>Writer</code>. This class is <b>not</b> thread safe so it is recommended
- * that a new instance be created each time a translation is required.
- * <p/>
- * The generated JavaScript code is dependent on the code base found in the
- * file "jsr303js-codebase.js" having already been loaded into the page where
- * the validation will occur.
- * <p/>
- * The generated JavaScript will be of the form:
- *
- * new JSR303JSValidator('beanName', true/false, { extra config JSON object },
- *   new Array(
- *     new JSR303JSValidator.Rule('fieldName','ValidationAnnotation', { annotation attributes JSON object }),
- *     ...
- *   )
- * )
- *
- * @author sdouglass
- * @version $Id$
- */
 public class ValidationJavaScriptGenerator {
 
   private Writer writer;
@@ -72,7 +50,7 @@ public class ValidationJavaScriptGenerator {
     try {
       setWriter(writer);
 		append(varName);
-      append(" = new JSR303JSValidator(");
+      append(" = new JSValidator(");
       appendJsString(formId);
       append(',');
 		appendJsString(formObjectName);
@@ -131,7 +109,7 @@ public class ValidationJavaScriptGenerator {
   }
 
   protected void appendValidatorRule(Rule rule) throws IOException {
-    append("new JSR303JSValidator.Rule(");
+    append("new JSValidator.Rule(");
     appendJavaScriptValidatorRuleArgs(rule);
     append(')');
   }

@@ -1,4 +1,4 @@
-package fr.ippon.blog.jsr303js.util;
+package fr.ippon.blog.jsv.util;
 
 import java.lang.reflect.Field;
 import org.apache.commons.lang.Validate;

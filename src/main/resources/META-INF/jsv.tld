@@ -4,13 +4,13 @@
 <taglib>
 	<tlib-version>1.1.1</tlib-version>
 	<jsp-version>1.2</jsp-version>
-	<short-name>JSR303JS</short-name>
-	<uri>http://ippon.fr/projects/jsr303js/</uri>
+	<short-name>JSV</short-name>
+	<uri>http://ippon.fr/projects/jsv/</uri>
 	<description>
 	</description>
 	<tag>
 		<name>validator</name>
-		<tag-class>fr.ippon.blog.jsr303js.taglib.ValidatorTag</tag-class>
+		<tag-class>fr.ippon.blog.jsv.taglib.ValidatorTag</tag-class>
 		<body-content>JSP</body-content>
 		<attribute>
 			<name>formClassName</name>

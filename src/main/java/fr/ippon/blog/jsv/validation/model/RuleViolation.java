@@ -1,4 +1,4 @@
-package fr.ippon.blog.jsr303js.validation.model;
+package fr.ippon.blog.jsv.validation.model;
 
 import java.util.HashMap;
 

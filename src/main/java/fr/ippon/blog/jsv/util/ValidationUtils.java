@@ -1,4 +1,4 @@
-package fr.ippon.blog.jsr303js.util;
+package fr.ippon.blog.jsv.util;
 
 import javax.validation.Validation;
 import javax.validation.Validator;

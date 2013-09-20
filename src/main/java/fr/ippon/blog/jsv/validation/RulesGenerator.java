@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package fr.ippon.blog.jsr303js.validation;
+package fr.ippon.blog.jsv.validation;
 
-import fr.ippon.blog.jsr303js.util.ReflectionUtils;
-import fr.ippon.blog.jsr303js.validation.ajax.Ajaxable;
-import fr.ippon.blog.jsr303js.validation.model.Rule;
+import fr.ippon.blog.jsv.util.ReflectionUtils;
+import fr.ippon.blog.jsv.validation.ajax.Ajaxable;
+import fr.ippon.blog.jsv.validation.model.Rule;
 import javax.validation.Validator;
 import javax.validation.metadata.BeanDescriptor;
 import javax.validation.metadata.ConstraintDescriptor;

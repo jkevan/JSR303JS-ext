@@ -1,7 +1,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 
-<%@taglib prefix="jsr303js" uri="http://ippon.fr/projects/jsr303js/" %>
+<%@taglib prefix="JSV" uri="http://ippon.fr/projects/jsv/" %>
 
 <spring:url value="/validate" javaScriptEscape="true" var="validate_url"/>
 <spring:url value="/validate2" javaScriptEscape="true" var="validate_url2"/>
@@ -65,9 +65,8 @@
 	</div>
 </form:form>
 
-<script type="text/javascript" src="js/jsr303js-codebase.js"></script>
-<script type="text/javascript" src="js/jsr303js-ext.js"></script>
-<jsr303js:validator formId="FormBean" form="${formBean}" var="formBeanValidator">
+<script type="text/javascript" src="js/jsv_api.js"></script>
+<JSV:validator formId="FormBean" form="${formBean}" var="formBeanValidator">
 	{
 		errorLocalMessageTemplate: "<span class='{{class}} test'>{{message}}</span>",
 		ajaxValidateFieldURL:"${validate_url2}",
@@ -80,7 +79,7 @@
 			return data;
 		}
 	}
-</jsr303js:validator>
+</JSV:validator>
 <script type="text/javascript">
 	var firstNamefield = formBeanValidator.getFieldWithName("firstname");
 	var lastNamefield = formBeanValidator.getFieldWithName("lastname");

@@ -1,9 +1,8 @@
 package fr.ippon.blog.controllers;
 
-import fr.ippon.blog.jsr303js.validation.FieldValidator;
-import fr.ippon.blog.jsr303js.validation.model.RuleViolation;
+import fr.ippon.blog.jsv.validation.FieldValidator;
+import fr.ippon.blog.jsv.validation.model.RuleViolation;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Controller;

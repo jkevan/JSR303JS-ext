@@ -1,6 +1,6 @@
-package fr.ippon.blog.jsr303js.validation;
+package fr.ippon.blog.jsv.validation;
 
-import fr.ippon.blog.jsr303js.validation.model.RuleViolation;
+import fr.ippon.blog.jsv.validation.model.RuleViolation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

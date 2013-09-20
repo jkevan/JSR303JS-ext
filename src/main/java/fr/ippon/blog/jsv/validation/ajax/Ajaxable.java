@@ -1,4 +1,4 @@
-package fr.ippon.blog.jsr303js.validation.ajax;
+package fr.ippon.blog.jsv.validation.ajax;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.ippon.blog</groupId>
-	<artifactId>jsr303js-ext-demo</artifactId>
+	<artifactId>jsv-demo</artifactId>
 	<packaging>war</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>Demo - JSR303JS-ext validation</name>
+	<name>Demo - JSV</name>
 	
 	<dependencies>
 		<dependency>
@@ -70,7 +70,7 @@
 
 		<dependency>
 			<groupId>fr.ippon.blog</groupId>
-			<artifactId>jsr303js-ext</artifactId>
+			<artifactId>jsv-JSR303-plugin</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
@@ -83,7 +83,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>jsr303js-ext</finalName>
+		<finalName>jsv-demo</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.tomcat.maven</groupId>

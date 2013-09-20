@@ -1,6 +1,6 @@
 package fr.ippon.blog.validation.constraint;
 
-import fr.ippon.blog.jsr303js.validation.ajax.Ajaxable;
+import fr.ippon.blog.jsv.validation.ajax.Ajaxable;
 import fr.ippon.blog.validation.validator.PromoCodeValidator;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
