@@ -45,6 +45,22 @@
 	</div>
 
 	<div class="ctrl-holder">
+		<form:label path="sports">
+			<spring:message code="sports.label"/>
+		</form:label>
+		<form:select path="sports" items="${formBean.sportList}" multiple="true"/>
+		<div id="sports_error" class="error"></div>
+	</div>
+
+	<div class="ctrl-holder">
+		<form:label path="promoCode">
+			<spring:message code="promoCode.label"/>
+		</form:label>
+		<form:input path="promoCode"/>
+		<div id="promoCode_error" class="error"></div>
+	</div>
+
+	<div class="ctrl-holder">
 		<input type="submit" value="<spring:message code="send" />">
 	</div>
 </form:form>
@@ -70,10 +86,14 @@
 	var lastNamefield = formBeanValidator.getFieldWithName("lastname");
 	var languagesField = formBeanValidator.getFieldWithName("languages");
 	var ageField = formBeanValidator.getFieldWithName("age");
+	var sportsField = formBeanValidator.getFieldWithName("sports");
+	var promoCodeField = formBeanValidator.getFieldWithName("promoCode");
 	var form = formBeanValidator.getForm();
 
 	languagesField.bindValidationToEvent("click");
 	ageField.bindValidationToEvent("keyup");
+	sportsField.bindValidationToEvent("change");
+	promoCodeField.bindValidationToEvent("keyup").setValidationDelay("1000");
 
 	lastNamefield.bindValidationToEvent("keyup")
 			.addPreValidationProcess(function(event, field){
