@@ -71,8 +71,11 @@ JSR303JSValidator.Utils = {
 		var fn = function(event){
 			callback(event, field);
 		};
+		for (var i = 0; i < field.fieldElements.length; i++) {
+			var fieldElement = field.fieldElements[i];
+			this._bindEvent(fieldElement, type, fn, propagation);
 
-		this._bindEvent(field.fieldElement, type, fn, propagation);
+		}
 	},
 
 	_getAjaxableInRules: function (rules){
@@ -480,15 +483,8 @@ JSR303JSValidator.prototype.getForm = function(){
 	return this.form;
 };
 
-JSR303JSValidator.prototype.getFirstFieldWithName = function(fieldName){
-	var fields = this.getFieldsWithName(fieldName);
-	if(fields.length > 0){
-		return fields[0];
-	}
-};
-
-JSR303JSValidator.prototype.getFieldsWithName = function(fieldName){
-	return this.form.getFieldsWithName(fieldName);
+JSR303JSValidator.prototype.getFieldWithName = function(fieldName){
+	return this.form.getFieldWithName(fieldName);
 };
 
 JSR303JSValidator.prototype.getFields = function(){

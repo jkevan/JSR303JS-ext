@@ -71,39 +71,35 @@ JSR303JSValidator.Form = function(formElement, validator) {
 };
 JSR303JSValidator.Form.prototype = {
 	getValue: function(fieldName) {
-		var fields = this.getFieldsWithName(fieldName);
-		var value = [];
-		for (var i = 0; i < fields.length; i++) {
-			if (fields[i].getValue()) {
-				value.push(fields[i].getValue());
-			}
-		}
-		if (value.length == 1) {
-			return value[0];
-		} else if (value.length > 1) {
-			return value;
-		}
+		return this.getFieldWithName(fieldName).getValue();
 	},
-	getFieldsWithName: function(fieldName) {
-		var matchingFields = [];
+	getFieldWithName: function(fieldName) {
 		var fields = this.getFields();
 		for (var i = 0; i < fields.length; i++) {
-			var field = fields[i];
-			if (field.name == fieldName) {
-				matchingFields.push(field);
+			if(fields[i].name == fieldName){
+				return fields[i];
 			}
 		}
-		return matchingFields;
+		return null;
 	},
 	getFields: function() {
 		return this.fields;
 	},
 	_findFields: function() {
+		var instance = this;
 		var fields = [];
 		var tagElements = this.formElement.elements;
+		var inputNames = [];
 		for (var i = 0; i < tagElements.length; i++) {
-			if (tagElements[i].tagName.toLowerCase() != 'fieldset') {
-				fields.push(new JSR303JSValidator.Field(tagElements[i], this.validator));
+			if(tagElements[i].tagName.toLowerCase() != "fieldset" &&
+				tagElements[i].name &&
+				!inputNames[tagElements[i].name]){
+
+				inputNames[tagElements[i].name] = true;
+				var field = new JSR303JSValidator.Field(document.getElementsByName(tagElements[i].name), instance.validator);
+				if(field._hasValidationRules()){
+					fields.push(field);
+				}
 			}
 		}
 		return fields;
@@ -115,13 +111,12 @@ JSR303JSValidator.Form.prototype = {
  *
  * Based on code from http://prototype.conio.net/
  */
-JSR303JSValidator.Field = function(fieldElement, validator) {
+JSR303JSValidator.Field = function(fieldElements, validator) {
 	this.validator = validator;
-	this.id = fieldElement.id;
-	this.name = fieldElement.name;
-	this.type = fieldElement.type.toLowerCase();
-	this.tagName = fieldElement.tagName.toLowerCase();
-	this.fieldElement = fieldElement;
+	this.name = fieldElements[0].name;
+	this.tagName = fieldElements[0].tagName.toLowerCase();
+	this.type = fieldElements[0].type.toLowerCase();
+	this.fieldElements = fieldElements;
 	this.actions = [];
 
 	if (JSR303JSValidator.Field.ValueGetters[this.tagName]) {
@@ -135,8 +130,10 @@ JSR303JSValidator.Field = function(fieldElement, validator) {
 				this.getValue = JSR303JSValidator.Field.ValueGetters['textarea'];
 				break
 			case 'checkbox':
+				this.getValue = JSR303JSValidator.Field.ValueGetters['checkbox'];
+				break
 			case 'radio':
-				this.getValue = JSR303JSValidator.Field.ValueGetters['inputSelector'];
+				this.getValue = JSR303JSValidator.Field.ValueGetters['radio'];
 				break
 			default:
 				throw 'unexpected input field type \'' + this.type + '\'';
@@ -147,25 +144,45 @@ JSR303JSValidator.Field = function(fieldElement, validator) {
 };
 
 JSR303JSValidator.Field.ValueGetters = {
-	inputSelector: function() {
-		if (this.fieldElement.checked) {
-			return this.fieldElement.value
+	radio: function() {
+		var value = null;
+		for(var i = 0; i< this.fieldElements.length; i++){
+			if(this.fieldElements[i].checked){
+				value = this.fieldElements[i].value;
+			}
 		}
+		return value;
+	},
+	checkbox: function() {
+		var value = [];
+		for(var i = 0; i< this.fieldElements.length; i++){
+			if(this.fieldElements[i].checked){
+				value.push(this.fieldElements[i].value);
+			}
+		}
+		return value;
 	},
 	textarea: function() {
-		return this.fieldElement.value
+		if(this.fieldElements.length == 1){
+			return this.fieldElements[0].value;
+		}else if(this.fieldElements.length > 1){
+			var arrayValue = [];
+			for (var i = 0; i < this.fieldElements.length; i++) {
+				var fieldElement = this.fieldElements[i];
+				arrayValue.push(fieldElement.value);
+			}
+			return arrayValue;
+		}
+		return null
 	},
 	select: function() {
-		var value = ''
-		if (this.fieldElement.type == 'select-one') {
-			var index = this.fieldElement.selectedIndex
-			if (index >= 0) {
-				value = this.fieldElement.options[index].value
-			}
-		} else {
-			value = []
-			for (var i = 0; i < element.length; i++) {
-				var option = this.fieldElement.options[i]
+		var value = null;
+		if (this.fieldElements[0].type == 'select-one') {
+			value = this.fieldElements[0].value;
+		} else if(this.fieldElements[0].type == 'select-multiple') {
+			value = [];
+			for (var i = 0; i < this.fieldElements[0].options.length; i++) {
+				var option = this.fieldElements[0].options[i];
 				if (option.selected) {
 					value.push(option.value)
 				}
@@ -353,7 +370,7 @@ JSR303JSValidator.Rule.prototype = {
 	Size: function(value, params) {
 		var valid = true;
 		if (value) {
-			var valueLength = value.toString().length;
+			var valueLength = value.length;
 			if (params.min && valueLength < params.min) {
 				valid = false;
 			}

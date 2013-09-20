@@ -33,6 +33,15 @@
 			<spring:message code="age.label"/>
 		</form:label>
 		<form:input path="age"/>
+		<div id="age_error" class="error"></div>
+	</div>
+
+	<div class="ctrl-holder">
+		<form:label path="languages">
+			<spring:message code="languages.label"/>
+		</form:label>
+		<form:checkboxes items="${formBean.languageList}" path="languages"/>
+		<div id="languages_error" class="error"></div>
 	</div>
 
 	<div class="ctrl-holder">
@@ -57,9 +66,14 @@
 	}
 </jsr303js:validator>
 <script type="text/javascript">
-	var firstNamefield = formBeanValidator.getFirstFieldWithName("firstname");
-	var lastNamefield = formBeanValidator.getFirstFieldWithName("lastname");
+	var firstNamefield = formBeanValidator.getFieldWithName("firstname");
+	var lastNamefield = formBeanValidator.getFieldWithName("lastname");
+	var languagesField = formBeanValidator.getFieldWithName("languages");
+	var ageField = formBeanValidator.getFieldWithName("age");
 	var form = formBeanValidator.getForm();
+
+	languagesField.bindValidationToEvent("click");
+	ageField.bindValidationToEvent("keyup");
 
 	lastNamefield.bindValidationToEvent("keyup")
 			.addPreValidationProcess(function(event, field){
